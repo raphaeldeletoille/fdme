@@ -96,5 +96,28 @@ resource "random_password" "password" {
   min_upper        = 1
 }
 
-#DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP 
+#DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP "raph-rg" (POU CELA BESOIN D UN DATASOURCE)
 #ET LE MDP ADMIN SERA LE MDP DANS VOTRE SECRET
+
+data "azurerm_resource_group" "CECINESTPASMONRG" {
+  name = "brad_rg"
+}
+
+resource "azurerm_mssql_server" "sqlsrv" {
+  name                         = "raphsqlserver"
+  resource_group_name          = data.azurerm_resource_group.CECINESTPASMONRG.name
+  location                     = data.azurerm_resource_group.CECINESTPASMONRG.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = random_password.password.result
+  minimum_tls_version          = "1.2"
+
+  # azuread_administrator {
+  #   login_username = "AzureAD Admin"
+  #   object_id      = data.azurerm_client_config.current.object_id
+  # }
+}
+
+
+# DEPLOYER UN MSSQL DATABASE SUR VOTRE MSSQL SERVER
+# LE SKU_NAME = GP_S_Gen5_2
