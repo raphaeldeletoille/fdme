@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "rg" {
 #VOTRE STORAGE ACCOUNT DOIT ETRE EN "COOL"
 
 resource "azurerm_storage_account" "sto" {
-  name                     = "raphstorage"
+  name                     = "raphstorageuhqsfd"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -99,6 +99,8 @@ resource "random_password" "password" {
 #DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP "raph-rg" (POU CELA BESOIN D UN DATASOURCE)
 #ET LE MDP ADMIN SERA LE MDP DANS VOTRE SECRET
 
+
+#TO CLEAN
 data "azurerm_resource_group" "CECINESTPASMONRG" {
   name = "brad_rg"
 }
@@ -112,12 +114,38 @@ resource "azurerm_mssql_server" "sqlsrv" {
   administrator_login_password = random_password.password.result
   minimum_tls_version          = "1.2"
 
-  # azuread_administrator {
-  #   login_username = "AzureAD Admin"
-  #   object_id      = data.azurerm_client_config.current.object_id
-  # }
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azurerm_client_config.current.object_id
+  }
 }
 
 
 # DEPLOYER UN MSSQL DATABASE SUR VOTRE MSSQL SERVER
 # LE SKU_NAME = GP_S_Gen5_2
+
+resource "azurerm_mssql_database" "sqldb" {
+  name                        = "acctest-db-d"
+  server_id                   = azurerm_mssql_server.sqlsrv.id
+  collation                   = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_gb                 = 4
+  min_capacity                = 1
+  read_scale                  = false
+  sku_name                    = "GP_S_Gen5_2"
+  zone_redundant              = true
+  auto_pause_delay_in_minutes = 60
+}
+
+#DEPLOYER 3 VIRTUAL NETWORK A PARTIR DU MEME BLOC (COUNT)
+
+resource "azurerm_virtual_network" "vnet" {
+  count               = 3
+  name                = "raph-network${count.index}" 
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  address_space       = ["10.${count.index}.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+# DEPLOYER 2 SUBNETS (DEPUIS UN BLOC DIFFERENT, UN BLOC AZURERM_SUBNET) AVEC COUNT 
+# DANS VOTRE VNET 0
