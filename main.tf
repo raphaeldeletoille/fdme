@@ -147,5 +147,22 @@ resource "azurerm_virtual_network" "vnet" {
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
-# DEPLOYER 2 SUBNETS (DEPUIS UN BLOC DIFFERENT, UN BLOC AZURERM_SUBNET) AVEC COUNT 
+# DEPLOYER 2 SUBNETS (UN BLOC AZURERM_SUBNET) AVEC COUNT 
 # DANS VOTRE VNET 0
+
+resource "azurerm_subnet" "subnet" {
+  count                = 2
+  name                 = "subnet${count.index}"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet[0].name 
+  address_prefixes     = ["10.0.${count.index}.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+    }
+  }
+}
