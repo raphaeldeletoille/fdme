@@ -84,8 +84,17 @@ resource "azurerm_key_vault" "kv" {
 #DEPLOYER UN SECRET DANS VOTRE KEYVAULT 
 resource "azurerm_key_vault_secret" "mdp" {
   name         = "mdpdatabase"
-  value        = "qIQHFh87-!$$"
+  value        = random_password.password.result
   key_vault_id = azurerm_key_vault.kv.id
 }
 
 #GENEREZ UN MOT DE PASSE ALEATOIRE POUR REMPLACER LA VALUE DE VOTRE SECRET 
+resource "random_password" "password" {
+  length           = 20
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+  min_upper        = 1
+}
+
+#DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP 
+#ET LE MDP ADMIN SERA LE MDP DANS VOTRE SECRET
