@@ -169,3 +169,9 @@ resource "azurerm_private_endpoint" "cartereseau" {
     subresource_names              = ["sqlServer"]
   }
 }
+
+#DEPLOYER UNE VM (LINUX OU WINDOWS SERVER) 
+#CETTE VM VOUS LA CONNECTEZ A VOTRE SUBNET 2
+#CONNECTEZ VOUS A VOTRE VM
+
+SKU = Standard_B1ms
