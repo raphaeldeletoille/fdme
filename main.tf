@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "raph-rg"
+  name     = "${var.all_rg}-rg"
   location = "West Europe"
 }
 
@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "rg" {
 #VOTRE STORAGE ACCOUNT DOIT ETRE EN "COOL"
 
 resource "azurerm_storage_account" "sto" {
-  name                     = "raphstorageuhqsfd"
+  name                     = "${var.all_rg}storageuhqsfd"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -34,7 +34,7 @@ resource "azurerm_storage_container" "container" {
   container_access_type = "private"
 }
 
-# https://github.com/raphaeldeletoille/fdme
+# https://github.com/${var.all_rg}aeldeletoille/fdme
 
 # terraform init
 # terraform plan
@@ -49,7 +49,7 @@ resource "azurerm_storage_container" "container" {
 data "azurerm_client_config" "current" {}
 
 # resource "azurerm_key_vault" "kv" {
-#   name                        = "raphkv"
+#   name                        = "${var.all_rg}kv"
 #   location                    = azurerm_resource_group.rg.location
 #   resource_group_name         = azurerm_resource_group.rg.name
 #   enabled_for_disk_encryption = true
@@ -96,11 +96,11 @@ resource "random_password" "password" {
   min_upper        = 1
 }
 
-#DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP "raph-rg" (POU CELA BESOIN D UN DATASOURCE)
+#DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP "${var.all_rg}-rg" (POU CELA BESOIN D UN DATASOURCE)
 #ET LE MDP ADMIN SERA LE MDP DANS VOTRE SECRET
 
 resource "azurerm_mssql_server" "sqlsrv" {
-  name                         = "raphsqlserver"
+  name                         = "${var.all_rg}sqlserver"
   resource_group_name          = azurerm_resource_group.rg.name
   location                     = azurerm_resource_group.rg.location
   version                      = "12.0"
@@ -134,7 +134,7 @@ resource "azurerm_mssql_database" "sqldb" {
 
 resource "azurerm_virtual_network" "vnet" {
   count               = 3
-  name                = "raph-network${count.index}"
+  name                = "${var.all_rg}-network${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = ["10.${count.index}.0.0/16"]
@@ -177,14 +177,14 @@ resource "azurerm_private_endpoint" "cartereseau" {
 # size = 
 
 resource "azurerm_public_ip" "ippublic" {
-  name                = "vmraphpublic"
+  name                = "vm${var.all_rg}public"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "networkcard" {
-  name                = "raph-vm-card"
+  name                = "${var.all_rg}-vm-card"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -197,7 +197,7 @@ resource "azurerm_network_interface" "networkcard" {
 }
 
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                = "raph-machine"
+  name                = "${var.all_rg}-machine"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1ms"
@@ -224,3 +224,14 @@ resource "azurerm_windows_virtual_machine" "vm" {
 
 #DEPLOYER 2 RESOURCE GROUP AVEC FOR_EACH DEPUIS UN SEUL BLOC
 #LE 1ER RG DOIT UTILISER LA LOCATION West Europe, LE 2eme doit utiliser West US
+
+
+resource "azurerm_resource_group" "all_rg" {
+  for_each = var.all_rg
+
+  name     = each.value.name
+  location = each.value.location
+}
+
+#DEPLOYER UN LOG ANALYTICS 
+#RECUPEREZ LES LOGS & METRICS DE VOTRE STORAGE ACCOUNT POUR LES ENVOYER SUR VOTRE LOG ANALYTICS
