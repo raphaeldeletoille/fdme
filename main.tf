@@ -233,5 +233,29 @@ resource "azurerm_resource_group" "all_rg" {
   location = each.value.location
 }
 
-#DEPLOYER UN LOG ANALYTICS DANS VOTRE RESOURCE GROUP WEST EUROPE (QUI A ETE DEPLOYE AVEC LE FOR EACH)
-#RECUPEREZ LES LOGS & METRICS DE VOTRE STORAGE ACCOUNT POUR LES ENVOYER SUR VOTRE LOG ANALYTICS
+# 1) #DEPLOYER UN LOG ANALYTICS DANS VOTRE RESOURCE GROUP WEST EUROPE (QUI A ETE DEPLOYE AVEC LE FOR EACH)
+
+# 2) #ENVOYEZ LES LOGS DE VOTRE STORAGE ACCOUNT VERS VOTRE LOG ANALYTICS 
+
+
+resource "azurerm_log_analytics_workspace" "toto" {
+  name                = "toto-acctest-01"
+  location            = azurerm_resource_group.all_rg["rg1"].location
+  resource_group_name = azurerm_resource_group.all_rg["rg1"].name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_diagnostic_setting" "ENVOYERSTORAGELOGSTOLOGANALYTICS" {
+  name               = "ENVOYERSTORAGELOGSTOLOGANALYTICS"
+  target_resource_id = azurerm_storage_account.sto.id 
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.toto.id 
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+
+#DONNEZ LES DROITS READER A L UTILISATEUR jgrandidier (jgrandidier@deletoilleprooutlook.onmicrosoft.com) sur votre RGcheck "name" {
+  
