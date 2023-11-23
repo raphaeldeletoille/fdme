@@ -48,45 +48,45 @@ resource "azurerm_storage_container" "container" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_key_vault" "kv" {
-  name                        = "raphkv"
-  location                    = azurerm_resource_group.rg.location
-  resource_group_name         = azurerm_resource_group.rg.name
-  enabled_for_disk_encryption = true
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
+# resource "azurerm_key_vault" "kv" {
+#   name                        = "raphkv"
+#   location                    = azurerm_resource_group.rg.location
+#   resource_group_name         = azurerm_resource_group.rg.name
+#   enabled_for_disk_encryption = true
+#   tenant_id                   = data.azurerm_client_config.current.tenant_id
+#   soft_delete_retention_days  = 7
+#   purge_protection_enabled    = false
 
-  sku_name = "standard"
+#   sku_name = "standard"
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id # = 68a63944-3750-446d-855d-3691acf10ab8
+#   access_policy {
+#     tenant_id = data.azurerm_client_config.current.tenant_id
+#     object_id = data.azurerm_client_config.current.object_id # = 68a63944-3750-446d-855d-3691acf10ab8
 
-    key_permissions = [
-      "Get",
-    ]
+#     key_permissions = [
+#       "Get",
+#     ]
 
-    secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
-    ]
+#     secret_permissions = [
+#       "Set",
+#       "Get",
+#       "Delete",
+#       "Purge",
+#       "Recover"
+#     ]
 
-    storage_permissions = [
-      "Get",
-    ]
-  }
-}
+#     storage_permissions = [
+#       "Get",
+#     ]
+#   }
+# }
 
 #DEPLOYER UN SECRET DANS VOTRE KEYVAULT 
-resource "azurerm_key_vault_secret" "mdp" {
-  name         = "mdpdatabase"
-  value        = random_password.password.result
-  key_vault_id = azurerm_key_vault.kv.id
-}
+# resource "azurerm_key_vault_secret" "mdp" {
+#   name         = "mdpdatabase"
+#   value        = random_password.password.result
+#   key_vault_id = azurerm_key_vault.kv.id
+# }
 
 #GENEREZ UN MOT DE PASSE ALEATOIRE POUR REMPLACER LA VALUE DE VOTRE SECRET 
 resource "random_password" "password" {
@@ -99,16 +99,10 @@ resource "random_password" "password" {
 #DEPLOYEZ UN MSSQL SERVER DANS MON RESOURCE GROUP "raph-rg" (POU CELA BESOIN D UN DATASOURCE)
 #ET LE MDP ADMIN SERA LE MDP DANS VOTRE SECRET
 
-
-#TO CLEAN
-data "azurerm_resource_group" "CECINESTPASMONRG" {
-  name = "brad_rg"
-}
-
 resource "azurerm_mssql_server" "sqlsrv" {
   name                         = "raphsqlserver"
-  resource_group_name          = data.azurerm_resource_group.CECINESTPASMONRG.name
-  location                     = data.azurerm_resource_group.CECINESTPASMONRG.location
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = random_password.password.result
@@ -156,13 +150,22 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet[0].name 
   address_prefixes     = ["10.0.${count.index}.0/24"]
+}
 
-  delegation {
-    name = "delegation"
 
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
-    }
+#PRIVATE ENDPOINT
+#BRANCHER VOTRE SQL A VOTRE DERNIER SUBNET
+
+resource "azurerm_private_endpoint" "cartereseau" {
+  name                = "sqlsrv-endpoint"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.subnet[1].id
+
+  private_service_connection {
+    name                           = "sqlsrv-connection"
+    private_connection_resource_id = azurerm_mssql_server.sqlsrv.id
+    is_manual_connection           = false
+    subresource_names              = ["sqlServer"]
   }
 }
