@@ -290,3 +290,28 @@ resource "azurerm_role_assignment" "donner_permission_grafana_log_analytics" {
   role_definition_name = "Monitoring Reader"
   principal_id         = azurerm_dashboard_grafana.grafana.identity[0].principal_id
 }
+
+#DEPLOYEZ DES DISQUES DUR SUPPLEMENTAIRES SUR VOTRE VM
+
+resource "azurerm_managed_disk" "disk" {
+  count                = 2    
+  name                     = "acctestmd${count.index}"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name     = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = var.disk_size
+}
+
+variable "disk_size" {
+  default = "100"
+  type    = string
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "disk_attach" {
+  count              = 2 
+  managed_disk_id    = azurerm_managed_disk.disk[count.index].id
+  virtual_machine_id = azurerm_windows_virtual_machine.vm.id
+  lun                = count.index
+  caching            = "ReadWrite"
+}
