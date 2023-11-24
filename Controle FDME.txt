@@ -1,0 +1,50 @@
+Controle FDME
+
+User : fdme@deletoilleprooutlook.onmicrosoft.com
+Mdp : Ecole123!
+
+Créer un dossier PRENOM-NOM sur votre Bureau (le controle se fera depuis ce dossier)
+PRENOM-NOM tout en haut de votre code.
+
+Partie 1) 4 points
+
+Questions :
+ 
+1) Quels sont les avantages d'utiliser Terraform (l'infrastructure as code) ?
+
+2) Comment fonctionne le Tfstate ?
+
+3) Qu'est ce que le Cloud, ses fonctions, ses avantages ?
+
+4) Citez 2 outils DevOps (en dehors de Terraform) et donnez une description très basique de ces outils et leur utilité.
+
+
+Partie 2) 16 points
+
+Utilisez Commentaires, Variables, Count, For_Each, Datasources, Random Password lorsque necessaire. 
+
+Les valeurs entre guillemets existent déjà.
+
+1) Déployer un resource group en West Europe avec votre première lettre de prénom suivi de votre nom de famille. (toutes les ressources sont à déployer sur ce resource group)
+
+2) Déployer un MSSQL_Server avec une règle réseau (mssql_firewall_rule) autorisant uniquement votre IP Public et la mienne (82.123.113.93).
+
+3) Déployer 1 vnet et 5 subnets.  
+
+4) Déployer 1 vm Ubuntu en 22.04 LTS sur votre subnet 4 et 2 (Utilisation obligatoire de admin_password).
+
+5) Déployer 2 Disks --> un de 500Go, un de 1To et les connecter à votre VM. 
+
+6) Donnez les droits Owner à l'utilisateur "goldleague@deletoilleprooutlook.onmicrosoft.com" sur votre Resource Group
+
+7) Déployer un Keyvault avec tous les droits secret au groupe utilisateur "group-etudiants"
+
+8) Envoyez les logs & metrics de votre Keyvault sur mon "Log Analytics" --> son nom est : "glhf"
+
+Lorsque votre code est terminé, ouvrez Azure Storage Explorer puis :
+
+- Cliquez sur le symbole "prise" à gauche
+- Cliquez sur Blob Container
+- Sélectionnez Shared Access Signature URL
+- Collez dans Blob URL la clé suivante https://glhf.blob.core.windows.net/controle?sp=racwli&st=2023-11-24T12:48:21Z&se=2023-11-24T20:48:21Z&spr=https&sv=2022-11-02&sr=c&sig=UygU9ySSJjaDP9dzoeQwmk20Ni1QYUEg9%2BZmr4M%2BzFU%3D
+- Une fois connecté, Uploadez votre Folder (Non Zippé)
