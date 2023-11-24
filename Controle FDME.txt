@@ -39,7 +39,9 @@ Les valeurs entre guillemets existent déjà.
 
 7) Déployer un Keyvault avec tous les droits secret au groupe utilisateur "group-etudiants"
 
-8) Envoyez les logs & metrics de votre Keyvault sur mon "Log Analytics" --> son nom est : "glhf"
+8) Connectez votre keyvault à votre subnet 1
+
+9) Envoyez les logs & metrics de votre Keyvault sur mon "Log Analytics" --> son nom est : "glhf"
 
 Lorsque votre code est terminé, ouvrez Azure Storage Explorer puis :
 
