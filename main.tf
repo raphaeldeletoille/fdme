@@ -259,3 +259,16 @@ resource "azurerm_monitor_diagnostic_setting" "ENVOYERSTORAGELOGSTOLOGANALYTICS"
 
 #DONNEZ LES DROITS READER A L UTILISATEUR jgrandidier (jgrandidier@deletoilleprooutlook.onmicrosoft.com) sur votre RGcheck "name" {
   
+data "azuread_user" "leboss" {
+  user_principal_name = "jgrandidier@deletoilleprooutlook.onmicrosoft.com"
+}
+
+resource "azurerm_role_assignment" "donner_permission" {
+  scope                = azurerm_resource_group.rg.id 
+  role_definition_name = "Reader"
+  principal_id         = data.azuread_user.leboss.object_id
+}
+
+#DEPLOYER UN GRAFANA DASHBOARD
+#DONNER LES PERMISSIONS A L IDENTITE DE GRAFANA SUR VOTRE LOG ANALYTICS (MONITORING READER)
+#DONNER LES PERMISSIONS A VOTRE UTILISATEUR SUR GRAFANA (Grafana Admin)
