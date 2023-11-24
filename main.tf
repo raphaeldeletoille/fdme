@@ -246,17 +246,6 @@ resource "azurerm_log_analytics_workspace" "toto" {
   retention_in_days   = 30
 }
 
-resource "azurerm_monitor_diagnostic_setting" "ENVOYERSTORAGELOGSTOLOGANALYTICS" {
-  name               = "ENVOYERSTORAGELOGSTOLOGANALYTICS"
-  target_resource_id = azurerm_storage_account.sto.id 
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.toto.id 
-
-  metric {
-    category = "AllMetrics"
-  }
-}
-
-
 #DONNEZ LES DROITS READER A L UTILISATEUR jgrandidier (jgrandidier@deletoilleprooutlook.onmicrosoft.com) sur votre RGcheck "name" {
   
 data "azuread_user" "leboss" {
@@ -272,3 +261,32 @@ resource "azurerm_role_assignment" "donner_permission" {
 #DEPLOYER UN GRAFANA DASHBOARD
 #DONNER LES PERMISSIONS A L IDENTITE DE GRAFANA SUR VOTRE LOG ANALYTICS (MONITORING READER)
 #DONNER LES PERMISSIONS A VOTRE UTILISATEUR SUR GRAFANA (Grafana Admin)
+
+resource "azurerm_dashboard_grafana" "grafana" {
+  name                              = "grafana-dg"
+  resource_group_name               = azurerm_resource_group.rg.name
+  location                          = "West Europe"
+  api_key_enabled                   = true
+  deterministic_outbound_ip_enabled = true
+  public_network_access_enabled     = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+output "identity_grafana" {
+  value = azurerm_dashboard_grafana.grafana.identity
+}
+
+resource "azurerm_role_assignment" "donner_permission_grafana_user" {
+  scope                = azurerm_dashboard_grafana.grafana.id 
+  role_definition_name = "Grafana Admin"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "donner_permission_grafana_log_analytics" {
+  scope                = azurerm_log_analytics_workspace.toto.id 
+  role_definition_name = "Monitoring Reader"
+  principal_id         = azurerm_dashboard_grafana.grafana.identity[0].principal_id
+}
