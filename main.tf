@@ -78,4 +78,40 @@ output "container_sas_url" {
     sensitive   = false
 }
 
+
 #DEPLOYER UN KEYVAULT EN MODE ACCESS POLICY, DE VOUS DONNER (A VOUS MEME) tous les droits "Secret" et créer un Secret.
+#ALLER VOIR SUR L INTERFACE GRAPHIQUE VOTRE SECRET (MDP)
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "kv" {
+  name                = "raphkvoijqs"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+}
+
+resource "azurerm_key_vault_access_policy" "kv_access" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
+    ]
+}
+
+resource "azurerm_key_vault_secret" "mdp" {
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on = [azurerm_key_vault_access_policy.kv_access]
+}
+
+#DEPLOYER UN MSSQL SERVER EN TERRAFORM ET LUI DONNER LE MDP DU KEYVAULT EN TANT QUE PASSWORD en france central
+
