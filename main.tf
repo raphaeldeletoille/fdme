@@ -115,3 +115,30 @@ resource "azurerm_key_vault_secret" "mdp" {
 
 #DEPLOYER UN MSSQL SERVER EN TERRAFORM ET LUI DONNER LE MDP DU KEYVAULT EN TANT QUE PASSWORD en france central
 
+#DEPLOYER 1 VIRTUAL NETWORK ET DEPLOYER 3 SUBNETS (LES 3 SUBNETS DOIVENT ETRE DEPLOYEES A PARTIR D UN SEUL BLOC 
+#EN UTILISANT COUNT)
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "raph-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "subnets" {
+  count = 3
+  
+  name                 = "raph-subnet${count.index}"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.${count.index}.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+    }
+  }
+}
