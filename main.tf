@@ -132,13 +132,24 @@ resource "azurerm_subnet" "subnets" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.${count.index}.0/24"]
+}
 
-  delegation {
-    name = "delegation"
+#DEPLOYER VOTRE KEYVAULT DANS VOTRE PREMIER SUBNET A L AIDE D UN PRIVATE ENDPOINT
 
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
-    }
+resource "azurerm_private_endpoint" "kvcard" {
+  name                = "raph-endpoint-kv"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.subnets[0].id
+
+  private_service_connection {
+    name                           = "raph-endpoint-kv-privateserviceconnection"
+    private_connection_resource_id = azurerm_key_vault.kv.id 
+    is_manual_connection           = false
+    subresource_names = ["vault"]
   }
 }
+
+### Deployer une VM (WINDOWS SERVER OU UBUNTU) avec la vm size = Standard_B2as_v2
+### DEPLOYER CETTE VM DANS VOTRE PREMIER SUBNET
+### MODE LOGIN PASSWORD ET VOTRE PASSWORD DOIT ETRE VOTRE SECRET KEYVAULT
