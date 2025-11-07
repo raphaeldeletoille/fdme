@@ -1,16 +1,16 @@
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "4.51.0"
     }
   }
 }
 
 provider "azurerm" {
-    features {
-    }
-    subscription_id = "556b3479-49e0-4048-ace9-9b100efe5b6d"
+  features {
+  }
+  subscription_id = "556b3479-49e0-4048-ace9-9b100efe5b6d"
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -39,43 +39,43 @@ resource "azurerm_storage_container" "container" {
 #CREER UN SAS TOKEN ET VOUS CONNECTER A VOTRE CONTAINER (Terraform)
 #DEPUIS AZURE STORAGE EXPLORER ET DEPOSER UN FICHIER TEXTE (Azure Storage Explorer)
 data "azurerm_storage_account_sas" "sas" {
-    connection_string = azurerm_storage_account.storage.primary_connection_string
-    https_only           = true
+  connection_string = azurerm_storage_account.storage.primary_connection_string
+  https_only        = true
 
-    resource_types {
-        service   = true
-        container = true
-        object    = true
-    }
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
 
-    services {
-        blob  = true
-        queue = true
-        table = true
-        file  = true
-    }
+  services {
+    blob  = true
+    queue = true
+    table = true
+    file  = true
+  }
 
-    start  = "2025-03-21T00:00:00Z"
-    expiry = "2026-03-21T00:00:00Z"
+  start  = "2025-03-21T00:00:00Z"
+  expiry = "2026-03-21T00:00:00Z"
 
-    permissions {
-        read    = true
-        write   = true
-        delete  = true
-        list    = true
-        add     = true
-        create  = true
-        update  = true
-        process = true
-        tag     = true
-        filter  = true
-    }
+  permissions {
+    read    = true
+    write   = true
+    delete  = true
+    list    = true
+    add     = true
+    create  = true
+    update  = true
+    process = true
+    tag     = true
+    filter  = true
+  }
 }
 
 
 output "container_sas_url" {
-    value       = nonsensitive("${azurerm_storage_account.storage.primary_blob_endpoint}${data.azurerm_storage_account_sas.sas.sas}")
-    sensitive   = false
+  value     = nonsensitive("${azurerm_storage_account.storage.primary_blob_endpoint}${data.azurerm_storage_account_sas.sas.sas}")
+  sensitive = false
 }
 
 
@@ -97,20 +97,13 @@ resource "azurerm_key_vault_access_policy" "kv_access" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-    secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
-    ]
-}
-
-resource "azurerm_key_vault_secret" "mdp" {
-  name         = "secret-sauce"
-  value        = "szechuan"
-  key_vault_id = azurerm_key_vault.kv.id
-  depends_on = [azurerm_key_vault_access_policy.kv_access]
+  secret_permissions = [
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
+  ]
 }
 
 #DEPLOYER UN MSSQL SERVER EN TERRAFORM ET LUI DONNER LE MDP DU KEYVAULT EN TANT QUE PASSWORD en france central
@@ -127,7 +120,7 @@ resource "azurerm_virtual_network" "vnet" {
 
 resource "azurerm_subnet" "subnets" {
   count = 3
-  
+
   name                 = "raph-subnet${count.index}"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
@@ -144,12 +137,86 @@ resource "azurerm_private_endpoint" "kvcard" {
 
   private_service_connection {
     name                           = "raph-endpoint-kv-privateserviceconnection"
-    private_connection_resource_id = azurerm_key_vault.kv.id 
+    private_connection_resource_id = azurerm_key_vault.kv.id
     is_manual_connection           = false
-    subresource_names = ["vault"]
+    subresource_names              = ["vault"]
   }
 }
 
 ### Deployer une VM (WINDOWS SERVER OU UBUNTU) avec la vm size = Standard_B2as_v2
 ### DEPLOYER CETTE VM DANS VOTRE PREMIER SUBNET
 ### MODE LOGIN PASSWORD ET VOTRE PASSWORD DOIT ETRE VOTRE SECRET KEYVAULT
+
+
+resource "azurerm_network_interface" "vmcard" {
+  name                = "raph-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.subnets[0].id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.publicip.id
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "vm" {
+  name                = "raph-vm"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B2as_v2"
+  admin_username      = "adminuser"
+  admin_password      = azurerm_key_vault_secret.mdp.value
+  network_interface_ids = [
+    azurerm_network_interface.vmcard.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+
+#CONNECTEZ VOUS A VOTRE VM (SANS UTILISER BASTION)
+
+resource "azurerm_network_security_group" "vm_nsg" {
+  name                = "raph-vm-nsg"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "RDP"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "vm_nic_nsg" {
+  network_interface_id      = azurerm_network_interface.vmcard.id
+  network_security_group_id = azurerm_network_security_group.vm_nsg.id
+}
+
+resource "azurerm_public_ip" "publicip" {
+  name                = "raphIP"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+}
+
+#REMPLACER VOTRE SECRET (VOTRE MDP) PAR UN MDP ALEATOIRE AVEC 10 CARAC AU MINIMUM ET 1 CARAC SPECIAL MINIMUM ET 1 MAJ MIN 
+#ET 1 CHIFFRE MIN
+#NE PAS METTRE DE MDP EN CLAIR DANS VOTRE CODE
