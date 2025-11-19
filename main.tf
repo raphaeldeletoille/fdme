@@ -14,7 +14,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "raphaeld"
+  name     = "${var.name}aeld"
   location = "West Europe"
 }
 
@@ -85,7 +85,7 @@ output "container_sas_url" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "kv" {
-  name                = "raphkvoijqs"
+  name                = "raphkvoijqsa"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -105,8 +105,6 @@ resource "azurerm_key_vault_access_policy" "kv_access" {
     "Recover"
   ]
 }
-
-#DEPLOYER UN MSSQL SERVER EN TERRAFORM ET LUI DONNER LE MDP DU KEYVAULT EN TANT QUE PASSWORD en france central
 
 #DEPLOYER 1 VIRTUAL NETWORK ET DEPLOYER 3 SUBNETS (LES 3 SUBNETS DOIVENT ETRE DEPLOYEES A PARTIR D UN SEUL BLOC 
 #EN UTILISANT COUNT)
@@ -147,76 +145,134 @@ resource "azurerm_private_endpoint" "kvcard" {
 ### DEPLOYER CETTE VM DANS VOTRE PREMIER SUBNET
 ### MODE LOGIN PASSWORD ET VOTRE PASSWORD DOIT ETRE VOTRE SECRET KEYVAULT
 
+# resource "azurerm_network_interface" "vmcard" {
+#   name                = "raph-nic"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
 
-resource "azurerm_network_interface" "vmcard" {
-  name                = "raph-nic"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+#   ip_configuration {
+#     name                          = "internal"
+#     subnet_id                     = azurerm_subnet.subnets[0].id
+#     private_ip_address_allocation = "Dynamic"
+#     public_ip_address_id          = azurerm_public_ip.publicip.id
+#   }
+# }
 
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.subnets[0].id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.publicip.id
-  }
-}
+# resource "azurerm_windows_virtual_machine" "vm" {
+#   name                = "raph-vm"
+#   resource_group_name = azurerm_resource_group.rg.name
+#   location            = azurerm_resource_group.rg.location
+#   size                = "Standard_B2as_v2"
+#   admin_username      = "adminuser"
+#   admin_password      = azurerm_key_vault_secret.mdp.value
+#   network_interface_ids = [
+#     azurerm_network_interface.vmcard.id,
+#   ]
 
-resource "azurerm_windows_virtual_machine" "vm" {
-  name                = "raph-vm"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2as_v2"
-  admin_username      = "adminuser"
-  admin_password      = azurerm_key_vault_secret.mdp.value
-  network_interface_ids = [
-    azurerm_network_interface.vmcard.id,
-  ]
+#   os_disk {
+#     caching              = "ReadWrite"
+#     storage_account_type = "Standard_LRS"
+#   }
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
+#   source_image_reference {
+#     publisher = "MicrosoftWindowsServer"
+#     offer     = "WindowsServer"
+#     sku       = "2016-Datacenter"
+#     version   = "latest"
+#   }
+# }
 
 #CONNECTEZ VOUS A VOTRE VM (SANS UTILISER BASTION)
 
-resource "azurerm_network_security_group" "vm_nsg" {
-  name                = "raph-vm-nsg"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+# resource "azurerm_network_security_group" "vm_nsg" {
+#   name                = "raph-vm-nsg"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
 
-  security_rule {
-    name                       = "RDP"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3389"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-}
+#   security_rule {
+#     name                       = "RDP"
+#     priority                   = 1001
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "3389"
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "*"
+#   }
+# }
 
-resource "azurerm_network_interface_security_group_association" "vm_nic_nsg" {
-  network_interface_id      = azurerm_network_interface.vmcard.id
-  network_security_group_id = azurerm_network_security_group.vm_nsg.id
-}
+# resource "azurerm_network_interface_security_group_association" "vm_nic_nsg" {
+#   network_interface_id      = azurerm_network_interface.vmcard.id
+#   network_security_group_id = azurerm_network_security_group.vm_nsg.id
+# }
 
-resource "azurerm_public_ip" "publicip" {
-  name                = "raphIP"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  allocation_method   = "Static"
-}
+# resource "azurerm_public_ip" "publicip" {
+#   name                = "raphIP"
+#   resource_group_name = azurerm_resource_group.rg.name
+#   location            = azurerm_resource_group.rg.location
+#   allocation_method   = "Static"
+# }
 
 #REMPLACER VOTRE SECRET (VOTRE MDP) PAR UN MDP ALEATOIRE AVEC 10 CARAC AU MINIMUM ET 1 CARAC SPECIAL MINIMUM ET 1 MAJ MIN 
 #ET 1 CHIFFRE MIN
 #NE PAS METTRE DE MDP EN CLAIR DANS VOTRE CODE
+
+resource "random_password" "password" {
+  length           = 20
+  special          = true
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+  min_upper        = 1
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "azurerm_key_vault_secret" "mdp" {
+  name         = "mdp-vm"
+  value        = random_password.password.result
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on = [ azurerm_key_vault.kv ]
+}
+
+#DEPLOYER UN CONTAINER DANS MON STORAGE ACCOUNT (VOUS ALLEZ AVOIR BESOIN D UN DATASOURCE DE MON STORAGE)
+
+# data "azurerm_storage_account" "CECINESTPASMONSTORAGE" {
+#   name                = "${var.name}stoojsdf"
+#   resource_group_name = "raphaeld"
+# }
+
+# resource "azurerm_storage_container" "CECIESTMONCONTAINERDANSUNAUTRESTORAGE" {
+#   name                  = var.name
+#   storage_account_id    = data.azurerm_storage_account.CECINESTPASMONSTORAGE.id 
+#   container_access_type = "private"
+# }
+
+#DECLARER UNE VARIABLE AVEC VOTRE PRENOM, L INJECTER DANS VOTRE NOM DE RG
+#Faire un terraform plan pour vérifier qu'il n'y a aucun change
+
+
+#DEPLOYER DEUX RESOURCE GROUP A PARTIR DU MEME BLOC EN UTILISANT FOR_EACH
+#VOUS AUREZ BESOIN D UNE VARIABLE DE TYPE MAP
+#LE PREMIER RG DOIT ETRE EN WEST EUROPE ET AVOIR LE TAG SERVICE IT
+#LE DEUXIEME RG DOIT ETRE EN WEST US ET AVOIR LE TAG SERVICE FINANCE
+
+variable "all_rg" {
+  type = map 
+  default = {
+    "rg1" = {
+      name = "rg1"
+      location = "West Europe"
+      tag = {
+        "Service" = "IT"
+      }
+    },
+    "rg2" = {
+      name = "rg2"
+      location = "West US"
+      tag = {
+        "Service" = "Finance"
+      }
+    }
+  }
+}
