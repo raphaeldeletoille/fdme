@@ -1,0 +1,55 @@
+Controle Partie 1 : 5 points 
+
+Qu'est ce que le Cloud, ses avantages, ses invoncénients, ses principaux acteurs ?
+
+Qu'est ce que le Cloud Public vs le Cloud Privé vs le Cloud Hybride ?
+
+Citez moi 3 services Azure et leur utilité ?
+
+Qu'est ce que le IaaS, PaaS, SaaS ?
+
+Qu'est ce que Terraform et l infrastructure as code, ses avantages ?
+
+Controle Partie 2 : 15 points
+Créer un dossier PRENOM-NOM sur votre Bureau (le contrôle se fera depuis ce dossier)
+Vous indiquerez aussi votre PRENOM-NOM tout en haut de votre code en commentaire
+
+Utilisez la dernière version du provider Azure disponible.
+Utilisez Commentaires, Variables, Count, For_Each, Datasources, mot de passe sécurisé lorsque nécessaire. 
+
+Toutes les ressources entre guillemets existent déjà.
+
+Toutes les ressources à déployer commenceront par les 3 premières lettres de votre nom de famille (à l'exception du resource group, exercice1)
+
+1) Déployer un resource group en West Europe avec votre première lettre de prénom suivi de votre nom de famille. (toutes les ressources sont à déployer sur ce resource group)
+
+2) Déployer un Keyvault avec tous les droits secret donnés au groupe utilisateur "group-etudiants".
+
+3) Déployer 2 virtual network et 3 subnets sur chacun de vos virtual network.  
+
+4) Déployer un storage account avec un coût réduit pour le stockage et un coût élevé pour la fréquence d'accès, déployer un container dans votre storage account, déployer un private endpoint de type blob pour connecter votre storage à votre vnet 1 subnet 1.
+
+5) Créer un secret dans le keyvault "cecinestpasmonkv"
+
+6) Déployer 1 vm Ubuntu sur votre vnet 1 subnet 3 en utilisant un mdp sécurisé qui sera stocké dans votre keyvault. Cette VM doit aussi être accessible publiquement. Activer le boot diagnostic.
+
+7) Déployer 3 Managed Disks --> un de 500Go, un de 1To, un de 2To et les connecter à votre VM. 
+
+8) Déployer 1 log Analytics, et envoyer tous les logs (et uniquement les logs) de votre storage account dessus.
+
+9) Donner les droits qui permettent de déployer ou détruire les ressources à l'utilisateur "glhf@deletoilleprooutlook.onmicrosoft.com" sur votre Resource Group
+
+10) Déployer un grafana sur lequel vous pouvez vous connecter uniquement avec les droits lecture. Faire en sorte que le Grafana soit capable de lire les Metrics de votre RG.
+
+Bonus : Autoriser l'accès à votre keyvault uniquement pour votre IP Public et la mienne 87.88.146.57.
+
+Lorsque votre code est terminé :
+
+Faites un Terraform Destroy
+
+Ouvrez Azure Storage Explorer puis -->
+- Cliquez sur le symbole "prise" à gauche
+- Cliquez sur Conteneur d'objet Blob
+- Sélectionnez URL de signature d'accès partagé (SAS)
+- Collez dans URL SAS du conteneur d'objets blob la clé suivante https://controlefdme.blob.core.windows.net/controle?sp=racwli&st=2025-11-21T11:57:55Z&se=2025-11-22T20:12:55Z&spr=https&sv=2024-11-04&sr=c&sig=XVFLCuVAMFKQKFc8YScB4U%2BVV1oEgGNpS3BwUqyuTmQ%3D
+- Une fois connecté, charger votre dossier complet, UNIQUEMENT LES .TF (PAS LE TFSTATE ET LES PROVIDERS) (Non Zippé)
