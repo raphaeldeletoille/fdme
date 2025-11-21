@@ -1,0 +1,4 @@
+    aad_audience = "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
+    aad_issuer   = "https://sts.windows.net/fbd5b602-423c-4722-be67-8382bc9dc8fa/"
+    aad_tenant   = "https://login.microsoftonline.com/fbd5b602-423c-4722-be67-8382bc9dc8fa/"
+  }
