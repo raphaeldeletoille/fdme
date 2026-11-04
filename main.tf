@@ -39,4 +39,13 @@ resource "azurerm_storage_account" "storage" {
   access_tier              = "Cool"
 }
 
-#DEPLOYER STORAGE CONTAINER DANS VOTRE STORAGE ACCOUNT
+#DEPLOYER STORAGE CONTAINER DANS VOTRE STORAGE ACCOUNT, TENTEZ D UPLOAD DE LA DONNEES DANS VOTRE CONTAINER
+resource "azurerm_storage_container" "container" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.storage.id
+  container_access_type = "private"
+}
+
+#DEPLOYER UN KEYVAULT EN MODE ACCESS POLICY DANS VOTRE RG
+
+#DEPLOYER UN SECRET DANS VOTRE KEYVAULT
