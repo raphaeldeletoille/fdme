@@ -72,3 +72,29 @@ resource "azurerm_key_vault_access_policy" "policy" {
     "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
   ]
 }
+
+resource "azurerm_key_vault_secret" "mdpVM" {
+  name         = "sdfpldsqlkgfkoijsdf"
+  value        = "toto"
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "mdpSQL" {
+  name         = "iuezarfiojqzsofijodzsf"
+  value        = "qsdfkjqfkq675"
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+# DEV A KEYVAULT A --> DEV A
+
+# VM A | IDENTITE VM A | GET SECRET IDENTITE VM A SUR KEYVAULT A
+# APPLICATION DE LA VM A A LE PACKAGE PYTHON OU JS QUI PERMET DE LIRE UN SECRET DANS LE KEYVAULT
+
+# DEV B KEYVAULT B --> DEV B
+
+# 5 DEV/INFRA (DEVOPS) SUR LE MEME CODE | INTERFACE QUI LEUR PERMET DE LANCER LE CODE TERRAFORM DEPUIS UN SERVEUR
+# MEMOIRE PARTAGEE SUR UN STORAGE ACCOUNT (AVEC LE BLOC BACKEND TERRAFORM).
+# APPLY OU DESTROY (LOCK)
+
+
+#GENERER UN MDP ALEATOIRE DANS VOTRE VALEUR DE SECRET (VOTRE VALEUR DE MDP NE DOIT PAS ETRE EN CLAIR DANS VOTRE CODE)
