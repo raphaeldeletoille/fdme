@@ -75,7 +75,7 @@ resource "azurerm_key_vault_access_policy" "policy" {
 
 resource "azurerm_key_vault_secret" "mdpVM" {
   name         = "sdfpldsqlkgfkoijsdf"
-  value        = "toto"
+  value        = random_password.mdpVM.result
   key_vault_id = azurerm_key_vault.kv.id
 }
 
@@ -98,3 +98,48 @@ resource "azurerm_key_vault_secret" "mdpSQL" {
 
 
 #GENERER UN MDP ALEATOIRE DANS VOTRE VALEUR DE SECRET (VOTRE VALEUR DE MDP NE DOIT PAS ETRE EN CLAIR DANS VOTRE CODE)
+resource "random_password" "mdpVM" {
+  length           = 17
+  special          = true
+  min_numeric      = 3
+  override_special = "!"
+}
+
+#VIRTUAL NETWORK (VNET) 
+#SUBNET 
+
+#UNE VM ATTEND UN SUBNET
+
+# FAIRE CELA EN TERRAFORM
+# DEPLOYER 1 VNET
+# DEPLOYER 3 SUBNETS DANS CE VNET
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "raph-vnetnetwork"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+#DEPLOYER VOS 3 SUBNETS A PARTIR D UN SEUL BLOC. UTILISER COUNT
+resource "azurerm_subnet" "subnets" {
+  name                 = "raph-subnet01"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.rg.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+# resource "azurerm_subnet" "subnet02" {
+#   name                 = "raph-subnet02"
+#   resource_group_name  = azurerm_resource_group.rg.name
+#   virtual_network_name = azurerm_virtual_network.rg.name
+#   address_prefixes     = ["10.0.2.0/24"]
+# }
+
+# resource "azurerm_subnet" "subnet03" {
+#   name                 = "raph-subnet03"
+#   resource_group_name  = azurerm_resource_group.rg.name
+#   virtual_network_name = azurerm_virtual_network.rg.name
+#   address_prefixes     = ["10.0.3.0/24"]
+# }
