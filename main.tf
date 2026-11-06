@@ -62,9 +62,9 @@ resource "azurerm_key_vault" "kv" {
   sku_name                   = "premium"
 
   network_acls {
-    bypass = "AzureServices"
+    bypass         = "AzureServices"
     default_action = "Deny"
-    ip_rules = ["176.157.202.57/32"]
+    ip_rules       = ["176.157.202.57/32"]
   }
 }
 
@@ -155,10 +155,71 @@ resource "azurerm_private_endpoint" "pe-kv" {
   }
 }
 
-# ALLOW PUBLIC ENDPOINT KEYVAULT ONLY FROM YOUR OWN PUBLIC IP 16h20 // 
+#VM
+resource "azurerm_public_ip" "vm_public_ip" {
+  name                = "raph-vm-public-ip"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
 
-Deployer 1 VM avec le size = Standard_B2ms 
+resource "azurerm_network_security_group" "vm_nsg" {
+  name                = "raph-vm-nsg"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
-1 VM WINDOWS SERVER, A DEPLOYER DANS LE MEME SUBNET QUE VOTRE KEYVAULT
+  security_rule {
+    name                       = "RDP"
+    priority                   = 1000
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
 
-CONNECTEZ VOUS EN RDP SUR VOTRE VM
+resource "azurerm_network_interface" "vm_nic" {
+  name                = "raph-vm-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.subnets[0].id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.vm_public_ip.id
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "vm_nsg_assoc" {
+  subnet_id                 = azurerm_subnet.subnets[0].id
+  network_security_group_id = azurerm_network_security_group.vm_nsg.id
+}
+
+resource "azurerm_windows_virtual_machine" "windows_vm" {
+  name                = "raph-windows-vm"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B2ms"
+  admin_username      = "azureadmin"
+  admin_password      = random_password.mdpVM.result
+  network_interface_ids = [
+    azurerm_network_interface.vm_nic.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+}
