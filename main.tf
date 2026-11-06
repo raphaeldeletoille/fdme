@@ -60,7 +60,14 @@ resource "azurerm_key_vault" "kv" {
   rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id # = "fbd5b602-423c-4722-be67-8382bc9dc8fa"
   sku_name                   = "premium"
+
+  network_acls {
+    bypass = "AzureServices"
+    default_action = "Deny"
+    ip_rules = ["176.157.202.57/32"]
+  }
 }
+
 
 #object ID = ID unique d'un compte user ou d'un groupe
 resource "azurerm_key_vault_access_policy" "policy" {
@@ -77,12 +84,20 @@ resource "azurerm_key_vault_secret" "mdpVM" {
   name         = "sdfpldsqlkgfkoijsdf"
   value        = random_password.mdpVM.result
   key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.policy
+  ]
 }
 
 resource "azurerm_key_vault_secret" "mdpSQL" {
   name         = "iuezarfiojqzsofijodzsf"
   value        = "qsdfkjqfkq675"
   key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.policy
+  ]
 }
 
 
@@ -140,4 +155,10 @@ resource "azurerm_private_endpoint" "pe-kv" {
   }
 }
 
-# ALLOW PUBLIC ENDPOINT KEYVAULT ONLY FROM YOUR OWN PUBLIC IP
+# ALLOW PUBLIC ENDPOINT KEYVAULT ONLY FROM YOUR OWN PUBLIC IP 16h20 // 
+
+Deployer 1 VM avec le size = Standard_B2ms 
+
+1 VM WINDOWS SERVER, A DEPLOYER DANS LE MEME SUBNET QUE VOTRE KEYVAULT
+
+CONNECTEZ VOUS EN RDP SUR VOTRE VM
