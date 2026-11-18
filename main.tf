@@ -265,8 +265,6 @@ resource "azurerm_storage_container" "all_containers" {
   container_access_type = "private"
 }
 
-<<<<<<< Updated upstream
-=======
 resource "azurerm_role_assignment" "donner_droit_reader" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Reader"
@@ -300,4 +298,3 @@ resource "azurerm_monitor_diagnostic_setting" "envoyerkvmonitoring" {
 
 #Récupérer via un datasource les diagnostics settings possibles d'un VNET et les envoyer vers
 #votre log analytics
->>>>>>> Stashed changes
