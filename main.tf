@@ -265,3 +265,4 @@ resource "azurerm_storage_container" "all_containers" {
   container_access_type = "private"
 }
 
+add mon role permission
