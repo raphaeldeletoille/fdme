@@ -17,9 +17,20 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "raphaeld"
+  name     = "${var.prenom}d"
   location = "West Europe"
 }
+
+resource "azurerm_resource_group" "rg2" {
+  name     = "raphaelddd"
+  location = "West Europe"
+}
+
+resource "azurerm_resource_group" "rg3" {
+  name     = "raphaelddddd"
+  location = "West Europe"
+}
+
 
 # #DEPLOYER UN STORAGE ACCOUNT D ARCHIVES EN TERRAFORM (PAS COLD), PLUS FAIBLE REPLICATION.
 
@@ -54,7 +65,7 @@ resource "azurerm_storage_container" "container" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "kv" {
-  name                       = "raphkvioqsujf"
+  name                       = "raphkvioqsujfaa"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name # = "raphaeld"
   rbac_authorization_enabled = false
@@ -226,3 +237,31 @@ resource "azurerm_private_endpoint" "pe-kv" {
 
 
 # METTRE DANS VOTRE RG NAME LA VARIABLE DE VOTRE PRENOM.
+
+
+resource "azurerm_storage_account" "all_storage" {
+  for_each                 = var.all_storage
+
+  name                     = "${var.prenom}${each.key}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  access_tier              = each.value.access_tier
+}
+
+# Deployer un storage container dans le storage02 
+
+resource "azurerm_storage_container" "container_dans_for_each" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.all_storage["sto02"].id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "all_containers" {
+  for_each = var.all_containers
+  name                  = each.value.name
+  storage_account_id    = azurerm_storage_account.all_storage["sto02"].id
+  container_access_type = "private"
+}
+
