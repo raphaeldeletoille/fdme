@@ -62,7 +62,7 @@ resource "azurerm_storage_container" "container" {
 # MAIN.TF
 
 
-data "azurerm_client_config" "current" {}
+
 
 resource "azurerm_key_vault" "kv" {
   name                       = "raphkvioqsujfaa"
@@ -265,3 +265,39 @@ resource "azurerm_storage_container" "all_containers" {
   container_access_type = "private"
 }
 
+<<<<<<< Updated upstream
+=======
+resource "azurerm_role_assignment" "donner_droit_reader" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Reader"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_log_analytics_workspace" "LA" {
+  name                = "raph-la"
+  location            = data.azurerm_resource_group.rgexterne.location
+  resource_group_name = data.azurerm_resource_group.rgexterne.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+#DEPLOYER DIAGNOSTIC SETTING POUR ENVOYER LOGS / METRICS DE VOTRE KEYVAULT VERS LE LOG ANLAYTICS : LogAnalytics
+
+resource "azurerm_monitor_diagnostic_setting" "envoyerkvmonitoring" {
+  name               = "envoyerkvmonitoring"
+  target_resource_id = azurerm_key_vault.kv.id
+  # storage_account_id = azurerm_storage_account.example.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.CECINESTPASMONLOGANALYTICS.id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+}
+
+#Récupérer via un datasource les diagnostics settings possibles d'un VNET et les envoyer vers
+#votre log analytics
+>>>>>>> Stashed changes
