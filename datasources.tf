@@ -12,3 +12,7 @@ data "azurerm_log_analytics_workspace" "CECINESTPASMONLOGANALYTICS" {
   name                = "LogAnalytics"
   resource_group_name = "cecinestpasmonrg"
 }
+
+data "azurerm_monitor_diagnostic_categories" "categories" {
+  resource_id = azurerm_virtual_network.vnet.id
+}

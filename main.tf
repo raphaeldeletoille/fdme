@@ -17,20 +17,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.prenom}d"
+  name     = "${var.prenom}ddd"
   location = "West Europe"
 }
-
-resource "azurerm_resource_group" "rg2" {
-  name     = "raphaelddd"
-  location = "West Europe"
-}
-
-resource "azurerm_resource_group" "rg3" {
-  name     = "raphaelddddd"
-  location = "West Europe"
-}
-
 
 # #DEPLOYER UN STORAGE ACCOUNT D ARCHIVES EN TERRAFORM (PAS COLD), PLUS FAIBLE REPLICATION.
 
@@ -298,3 +287,21 @@ resource "azurerm_monitor_diagnostic_setting" "envoyerkvmonitoring" {
 
 #Récupérer via un datasource les diagnostics settings possibles d'un VNET et les envoyer vers
 #votre log analytics
+
+
+
+resource "azurerm_monitor_diagnostic_setting" "diagnostic_setting" {
+  name                       = "envoyervnetlog"
+  target_resource_id         = azurerm_virtual_network.vnet.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.LA.id
+
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.categories.log_category_types
+    content {
+      category = enabled_log.value
+    }
+  }
+}
+
+#DEPLOYER UN GRAFANA
+# dashboard_grafana
