@@ -13,7 +13,7 @@ terraform {
 provider "azurerm" {
   features {
   }
-  subscription_id = "b774251e-4c42-43ba-9a5c-e9e88dd76f5e"
+  subscription_id = "892f3229-833f-4685-9507-67b9269b605d"
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -262,28 +262,28 @@ resource "azurerm_role_assignment" "donner_droit_reader" {
 
 resource "azurerm_log_analytics_workspace" "LA" {
   name                = "raph-la"
-  location            = data.azurerm_resource_group.rgexterne.location
-  resource_group_name = data.azurerm_resource_group.rgexterne.name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
 
 #DEPLOYER DIAGNOSTIC SETTING POUR ENVOYER LOGS / METRICS DE VOTRE KEYVAULT VERS LE LOG ANLAYTICS : LogAnalytics
 
-resource "azurerm_monitor_diagnostic_setting" "envoyerkvmonitoring" {
-  name               = "envoyerkvmonitoring"
-  target_resource_id = azurerm_key_vault.kv.id
-  # storage_account_id = azurerm_storage_account.example.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.CECINESTPASMONLOGANALYTICS.id
+# resource "azurerm_monitor_diagnostic_setting" "envoyerkvmonitoring" {
+#   name               = "envoyerkvmonitoring"
+#   target_resource_id = azurerm_key_vault.kv.id
+#   # storage_account_id = azurerm_storage_account.example.id
+#   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.CECINESTPASMONLOGANALYTICS.id
 
-  enabled_log {
-    category = "AuditEvent"
-  }
+#   enabled_log {
+#     category = "AuditEvent"
+#   }
 
-  enabled_metric {
-    category = "AllMetrics"
-  }
-}
+#   enabled_metric {
+#     category = "AllMetrics"
+#   }
+# }
 
 #Récupérer via un datasource les diagnostics settings possibles d'un VNET et les envoyer vers
 #votre log analytics
